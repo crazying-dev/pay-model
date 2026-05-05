@@ -10,7 +10,7 @@ max_conn = 5
 
 debug = True
 
-shop_list = []
+shop_list = [0000]
 
 class Tool:
 	def __init__(self):
@@ -55,7 +55,7 @@ class web:
 		while True:
 			try:
 				conn, addr = self.server_socket.accept()
-				data = json.loads(conn.recv(1024).decode("utf-8"))
+				data = json.loads(conn.recv(1024).decode("utf-8")[::-1])
 				ID = data["ID"]
 				log(f"收到用户订单信息,订单ID{ID},原始数据{data}")
 				List = ""
@@ -64,10 +64,13 @@ class web:
 					if shop not in shop_list:
 						conn.send("0x000".encode("utf-8"))
 					else:
-						List += "{:<10} {:<15} {:<20}\n".format(shop,i["item_id"], i["other"])
+						List += "{:<10} {:<15} {:<20}\n".format(shop,i["item_id"], i["other"] if i["other"] is not None else "")
 				log(f"ID为{ID}的订单信息:{List}")
 			except socket.timeout:
 				continue
+			except KeyboardInterrupt:
+				self.server_socket.close()
+				exit(0)
 			except Exception as e:
 				log(e)
 				continue
